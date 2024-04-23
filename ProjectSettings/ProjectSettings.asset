@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: DefaultCompany
-  productName: Building a Graph
+  productName: Mathematical Surfaces
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -160,8 +160,8 @@ PlayerSettings:
   androidMaxAspectRatio: 2.1
   androidMinAspectRatio: 1
   applicationIdentifier:
-    Android: com.DefaultCompany.BuildingaGraph
-    Standalone: com.DefaultCompany.Building-a-Graph
+    Android: com.DefaultCompany.MathematicalSurfaces
+    Standalone: com.DefaultCompany.Mathematical-Surfaces
   buildNumber:
     Bratwurst: 0
     Standalone: 0

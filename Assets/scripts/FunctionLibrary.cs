@@ -30,7 +30,31 @@ public static class FunctionLibrary
         return functions[(int)name];
     }
 
-    public static Vector3 Wave(float u, float v, float t)
+    public static FunctionName GetNextFunctionName(FunctionName name)
+    {
+        if ((int)name != functions.Length - 1)
+            return name + 1;
+        else
+            return 0;
+    }
+
+    public static FunctionName GetRandomFunctionName()
+    {
+        return (FunctionName)UnityEngine.Random.Range(0, functions.Length);
+    }
+
+    public static FunctionName GetRandomFunctionNameOtherThanCurrent(FunctionName name)
+    {
+        FunctionName funcName = (FunctionName)UnityEngine.Random.Range(1, functions.Length);
+        return funcName == name ? 0 : funcName;
+    }
+
+    public static Vector3 Morph(float u, float v, float t, Function to, Function from, float progress)
+    {
+        return Vector3.LerpUnclamped(from(u, v, t), to(u, v, t), Mathf.SmoothStep(0.0f, 1.0f, progress));
+    }
+
+    private static Vector3 Wave(float u, float v, float t)
     {
         Vector3 returnVal;
         returnVal.x = u;
@@ -39,7 +63,7 @@ public static class FunctionLibrary
         return returnVal;
     }
 
-    public static Vector3 MultiWave(float u, float v, float t)
+    private static Vector3 MultiWave(float u, float v, float t)
     {
         Vector3 returnVal;
         returnVal.x = u;
@@ -51,7 +75,7 @@ public static class FunctionLibrary
         return returnVal;
     }
 
-    public static Vector3 Ripple(float u, float v, float t)
+    private static Vector3 Ripple(float u, float v, float t)
     {
         float d = Mathf.Sqrt(u * u + v * v);
         Vector3 returnVal;
@@ -62,7 +86,7 @@ public static class FunctionLibrary
         return returnVal;
     }
 
-    public static Vector3 ScalingSphere(float u, float v, float t)
+    private static Vector3 ScalingSphere(float u, float v, float t)
     {
         float r = 0.5f + 0.5f * Mathf.Sin(Mathf.PI * t);
         float s = r * Mathf.Cos(0.5f * Mathf.PI * v);
@@ -73,7 +97,7 @@ public static class FunctionLibrary
         return returnVal;
     }
 
-    public static Vector3 TwistingSphere(float u, float v, float t)
+    private static Vector3 TwistingSphere(float u, float v, float t)
     {
         float r = 0.9f + 0.1f * Mathf.Sin(Mathf.PI * (6.0f * u + 4.0f * v + t));
         float s = r * Mathf.Cos(0.5f * Mathf.PI * v);
@@ -84,7 +108,7 @@ public static class FunctionLibrary
         return returnVal;
     }
 
-    public static Vector3 Torus(float u, float v, float t)
+    private static Vector3 Torus(float u, float v, float t)
     {
         float r1 = 0.7f + 0.1f * Mathf.Sin(Mathf.PI * (6.0f * u + 0.5f * t));
         float r2 = 0.15f + 0.05f * Mathf.Sin(Mathf.PI * (8.0f * u + 4.0f * v + 2.0f * t));

@@ -1,18 +1,30 @@
+using System;
 using UnityEngine;
 
 
 public class Graph : MonoBehaviour
 {
+    private enum TransitionMode
+    {
+        Static,
+        Cycle,
+        Random,
+        RandomNoRepeat
+    }
+
     [SerializeField] private Transform m_PointPrefab;
-
-    [SerializeField, Range(10, 200)] private int m_Resolution = 100;
-    private int m_PreviousResolution;
-
-    [SerializeField] private FunctionLibrary.FunctionName m_Function; 
+    [SerializeField] private FunctionLibrary.FunctionName m_CurrentFunction;
+    [SerializeField] private TransitionMode m_TransitionMode;
+    [SerializeField, Min(0.0f)] private float m_FunctionDuration = 5.0f, m_TransitionTime = 2.0f;
+    [SerializeField, Range(10, 200)] private int m_Resolution = 100; private int m_PreviousResolution;
 
     private Transform[] m_Points;
-
     private float[] m_UV;
+
+    private float m_CurrentDuration = 0.0f, m_ProgressTransition = 0.0f;
+    private bool m_IsTransition = false;
+
+    private FunctionLibrary.FunctionName m_PreviousFunction;
 
     private void Awake()
     {
@@ -33,7 +45,7 @@ public class Graph : MonoBehaviour
             m_UV[i] = (i + 0.5f) * step - 1.0f;
     }
 
-    void Update()
+    private void Update()
     {
         if (m_PreviousResolution != m_Resolution)
         {
@@ -43,11 +55,73 @@ public class Graph : MonoBehaviour
             Awake();
         }
 
-        FunctionLibrary.Function f = FunctionLibrary.GetFunction(m_Function);
+        m_CurrentDuration += Time.deltaTime;
+        if (m_IsTransition)
+        {
+            if (m_CurrentDuration < m_TransitionTime)
+                m_ProgressTransition = m_CurrentDuration / m_TransitionTime;
+            else
+            {
+                m_IsTransition = false;
+                m_CurrentDuration -= m_TransitionTime;
+                m_PreviousFunction = m_CurrentFunction;
+                m_ProgressTransition = 0.0f;
+            }
+        }
+        else if (m_PreviousFunction != m_CurrentFunction)
+        {
+            m_IsTransition = true;
+            m_CurrentDuration = 0.0f;
+        }
+        else if (m_CurrentDuration >= m_FunctionDuration)
+        {
+            m_CurrentDuration -= m_FunctionDuration;
+            PickNextFunction();
+        }
+
+        UpdateFunction();
+    }
+
+    private void UpdateFunction()
+    {
         float timeNow = Time.time;
 
-        for (int i = 0, u = 0; u < m_UV.Length; u++)
-            for (int v = 0; v < m_UV.Length; i++, v++)
-                m_Points[i].localPosition = f(m_UV[u], m_UV[v], timeNow);
+        if (m_IsTransition || m_CurrentFunction != m_PreviousFunction)
+        {
+            FunctionLibrary.Function to = FunctionLibrary.GetFunction(m_CurrentFunction), from = FunctionLibrary.GetFunction(m_PreviousFunction);
+            for (int i = 0, u = 0; u < m_UV.Length; u++)
+                for (int v = 0; v < m_UV.Length; i++, v++)
+                    m_Points[i].localPosition = FunctionLibrary.Morph(m_UV[u], m_UV[v], timeNow, to, from, m_ProgressTransition);
+        }
+        else
+        {
+            FunctionLibrary.Function f = FunctionLibrary.GetFunction(m_CurrentFunction);
+            for (int i = 0, u = 0; u < m_UV.Length; u++)
+                for (int v = 0; v < m_UV.Length; i++, v++)
+                    m_Points[i].localPosition = f(m_UV[u], m_UV[v], timeNow);
+        }
+    }
+
+    private void PickNextFunction()
+    {
+        switch (m_TransitionMode)
+        {
+        case TransitionMode.Static:
+            break;
+        case TransitionMode.Cycle:
+            m_CurrentFunction = FunctionLibrary.GetNextFunctionName(m_CurrentFunction);
+            m_IsTransition = true;
+            break;
+        case TransitionMode.Random:
+            m_CurrentFunction = FunctionLibrary.GetRandomFunctionName();
+            m_IsTransition = m_CurrentFunction == m_PreviousFunction;
+            break;
+        case TransitionMode.RandomNoRepeat:
+            m_CurrentFunction = FunctionLibrary.GetRandomFunctionNameOtherThanCurrent(m_CurrentFunction);
+            m_IsTransition = true;
+            break;
+        default:
+            break;
+        }
     }
 }
