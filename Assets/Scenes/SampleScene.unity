@@ -1367,11 +1367,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_PointPrefab: {fileID: 6565400453019757262, guid: 37b600a399e1aa34bae9609b22d6d019, type: 3}
-  m_CurrentFunction: 0
-  m_TransitionMode: 1
-  m_FunctionDuration: 2
-  m_TransitionTime: 5
-  m_Resolution: 50
+  m_CurrentFunctionName: 0
+  m_NextFunctionMethod: 3
+  m_FunctionHoldTime: 5
+  m_TransitionTime: 10
+  m_Resolution: 200
 --- !u!4 &1104285511
 Transform:
   m_ObjectHideFlags: 0

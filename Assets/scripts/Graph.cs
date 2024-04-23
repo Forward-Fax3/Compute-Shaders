@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Graph : MonoBehaviour
 {
-    private enum TransitionMode
+    private enum NextFunctionMethod
     {
         Static,
         Cycle,
@@ -13,18 +13,18 @@ public class Graph : MonoBehaviour
     }
 
     [SerializeField] private Transform m_PointPrefab;
-    [SerializeField] private FunctionLibrary.FunctionName m_CurrentFunction;
-    [SerializeField] private TransitionMode m_TransitionMode;
-    [SerializeField, Min(0.0f)] private float m_FunctionDuration = 5.0f, m_TransitionTime = 2.0f;
+    [SerializeField] private FunctionLibrary.FunctionName m_CurrentFunctionName;
+    [SerializeField] private NextFunctionMethod m_NextFunctionMethod;
+    [SerializeField, Min(0.0f)] private float m_FunctionHoldTime = 5.0f, m_TransitionTime = 2.0f;
     [SerializeField, Range(10, 200)] private int m_Resolution = 100; private int m_PreviousResolution;
 
     private Transform[] m_Points;
     private float[] m_UV;
 
-    private float m_CurrentDuration = 0.0f, m_ProgressTransition = 0.0f;
+    private float m_CurrentCounterTime = 0.0f, m_TransitionProgress = 0.0f;
     private bool m_IsTransition = false;
 
-    private FunctionLibrary.FunctionName m_PreviousFunction;
+    private FunctionLibrary.FunctionName m_PreviousFunctionName;
 
     private void Awake()
     {
@@ -55,69 +55,69 @@ public class Graph : MonoBehaviour
             Awake();
         }
 
-        m_CurrentDuration += Time.deltaTime;
+        m_CurrentCounterTime += Time.deltaTime;
         if (m_IsTransition)
         {
-            if (m_CurrentDuration < m_TransitionTime)
-                m_ProgressTransition = m_CurrentDuration / m_TransitionTime;
+            if (m_CurrentCounterTime < m_TransitionTime)
+                m_TransitionProgress = m_CurrentCounterTime / m_TransitionTime;
             else
             {
                 m_IsTransition = false;
-                m_CurrentDuration -= m_TransitionTime;
-                m_PreviousFunction = m_CurrentFunction;
-                m_ProgressTransition = 0.0f;
+                m_CurrentCounterTime -= m_TransitionTime;
+                m_PreviousFunctionName = m_CurrentFunctionName;
+                m_TransitionProgress = 0.0f;
             }
         }
-        else if (m_PreviousFunction != m_CurrentFunction)
+        else if (m_PreviousFunctionName != m_CurrentFunctionName)
         {
             m_IsTransition = true;
-            m_CurrentDuration = 0.0f;
+            m_CurrentCounterTime = 0.0f;
         }
-        else if (m_CurrentDuration >= m_FunctionDuration)
+        else if (m_CurrentCounterTime >= m_FunctionHoldTime)
         {
-            m_CurrentDuration -= m_FunctionDuration;
-            PickNextFunction();
+            m_CurrentCounterTime -= m_FunctionHoldTime;
+            GetNextFunction();
         }
 
-        UpdateFunction();
+        UpdatePointsPosition();
     }
 
-    private void UpdateFunction()
+    private void UpdatePointsPosition()
     {
         float timeNow = Time.time;
 
-        if (m_IsTransition || m_CurrentFunction != m_PreviousFunction)
+        if (m_IsTransition || m_CurrentFunctionName != m_PreviousFunctionName)
         {
-            FunctionLibrary.Function to = FunctionLibrary.GetFunction(m_CurrentFunction), from = FunctionLibrary.GetFunction(m_PreviousFunction);
+            FunctionLibrary.Function nextFunction = FunctionLibrary.GetFunction(m_CurrentFunctionName), previousFunction = FunctionLibrary.GetFunction(m_PreviousFunctionName);
             for (int i = 0, u = 0; u < m_UV.Length; u++)
                 for (int v = 0; v < m_UV.Length; i++, v++)
-                    m_Points[i].localPosition = FunctionLibrary.Morph(m_UV[u], m_UV[v], timeNow, to, from, m_ProgressTransition);
+                    m_Points[i].localPosition = FunctionLibrary.Morph(m_UV[u], m_UV[v], timeNow, nextFunction, previousFunction, m_TransitionProgress);
         }
         else
         {
-            FunctionLibrary.Function f = FunctionLibrary.GetFunction(m_CurrentFunction);
+            FunctionLibrary.Function currentFunction = FunctionLibrary.GetFunction(m_CurrentFunctionName);
             for (int i = 0, u = 0; u < m_UV.Length; u++)
                 for (int v = 0; v < m_UV.Length; i++, v++)
-                    m_Points[i].localPosition = f(m_UV[u], m_UV[v], timeNow);
+                    m_Points[i].localPosition = currentFunction(m_UV[u], m_UV[v], timeNow);
         }
     }
 
-    private void PickNextFunction()
+    private void GetNextFunction()
     {
-        switch (m_TransitionMode)
+        switch (m_NextFunctionMethod)
         {
-        case TransitionMode.Static:
+        case NextFunctionMethod.Static:
             break;
-        case TransitionMode.Cycle:
-            m_CurrentFunction = FunctionLibrary.GetNextFunctionName(m_CurrentFunction);
+        case NextFunctionMethod.Cycle:
+            m_CurrentFunctionName = FunctionLibrary.GetNextFunctionName(m_CurrentFunctionName);
             m_IsTransition = true;
             break;
-        case TransitionMode.Random:
-            m_CurrentFunction = FunctionLibrary.GetRandomFunctionName();
-            m_IsTransition = m_CurrentFunction == m_PreviousFunction;
+        case NextFunctionMethod.Random:
+            m_CurrentFunctionName = FunctionLibrary.GetRandomFunctionName();
+            m_IsTransition = m_CurrentFunctionName != m_PreviousFunctionName;
             break;
-        case TransitionMode.RandomNoRepeat:
-            m_CurrentFunction = FunctionLibrary.GetRandomFunctionNameOtherThanCurrent(m_CurrentFunction);
+        case NextFunctionMethod.RandomNoRepeat:
+            m_CurrentFunctionName = FunctionLibrary.GetRandomFunctionNameOtherThanCurrent(m_CurrentFunctionName);
             m_IsTransition = true;
             break;
         default:
