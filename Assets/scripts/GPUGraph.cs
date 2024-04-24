@@ -2,8 +2,7 @@ using System;
 using UnityEngine;
 
 
-public class Graph : MonoBehaviour
-public class Graph : MonoBehaviour
+public class GPUGraph : MonoBehaviour
 {
     private enum NextFunctionMethod
     {

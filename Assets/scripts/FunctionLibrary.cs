@@ -43,10 +43,10 @@ public static class FunctionLibrary
         return (FunctionName)UnityEngine.Random.Range(0, functions.Length);
     }
 
-    public static FunctionName GetRandomFunctionNameOtherThanCurrent(FunctionName name)
+    public static FunctionName GetRandomFunctionNameOtherThanCurrent(FunctionName previousName)
     {
-        FunctionName funcName = (FunctionName)UnityEngine.Random.Range(1, functions.Length);
-        return funcName == name ? 0 : funcName;
+        FunctionName nextName = (FunctionName)UnityEngine.Random.Range(1, functions.Length);
+        return nextName == previousName ? 0 : nextName;
     }
 
     public static Vector3 Morph(float u, float v, float t, Function to, Function from, float progress)
