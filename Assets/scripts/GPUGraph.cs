@@ -4,124 +4,74 @@ using UnityEngine;
 
 public class GPUGraph : MonoBehaviour
 {
-    private enum NextFunctionMethod
-    {
-        Static,
-        Cycle,
-        Random,
-        RandomNoRepeat
-    }
+	private enum NextFunctionMethod
+	{
+		Static,
+		Cycle,
+		Random,
+		RandomNoRepeat
+	}
 
-    [SerializeField] private Transform m_PointPrefab;
-    [SerializeField] private FunctionLibrary.FunctionName m_CurrentFunctionName;
-    [SerializeField] private NextFunctionMethod m_NextFunctionMethod;
-    [SerializeField, Min(0.0f)] private float m_FunctionHoldTime = 5.0f, m_TransitionTime = 2.0f;
-    [SerializeField, Range(10, 201)] private int m_Resolution = 100; private int m_PreviousResolution;
+	[NonSerialized] const int c_MaxResolution = 2000;
 
-    private Transform[] m_Points;
-    private float[] m_UV;
+	[SerializeField] private ComputeShader m_ComputeShader;
+	[SerializeField] private Material m_Material;
+	[SerializeField] private Mesh m_Mesh;
+	[SerializeField, Range(10, c_MaxResolution)] private int m_Resolution = 100;
 
-    private float m_CurrentCounterTime = 0.0f, m_TransitionProgress = 0.0f;
-    private bool m_IsTransition = false;
+	[NonSerialized] private ComputeBuffer m_PositionsBuffer;
+					
+	[NonSerialized] static readonly int s_PositionID = Shader.PropertyToID("_Positions"), s_Resolution = Shader.PropertyToID("_Resolution"), s_StepID = Shader.PropertyToID("_Step"), s_TimeID = Shader.PropertyToID("_Time"), s_TransitionTime = Shader.PropertyToID("_TransitionProgress");
+	[NonSerialized] private GraphSelect m_GraphSelect;
 
-    private FunctionLibrary.FunctionName m_PreviousFunctionName;
 
-    private void Awake()
-    {
-        m_PreviousResolution = m_Resolution;
-        float step = 2.0f / m_PreviousResolution;
-        Vector3 scale = Vector3.one * step;
-        m_Points = new Transform[m_PreviousResolution * m_PreviousResolution];
-        m_UV = new float[m_PreviousResolution];
+	private void Awake()
+	{
+		m_GraphSelect = GetComponent<GraphSelect>();
+		m_GraphSelect.enabled = true;
+		CreateObjects();
+	}
 
-        for (int i = 0; i < m_Points.Length; i++)
-        {
-            m_Points[i] = Instantiate(m_PointPrefab);
-            m_Points[i].localScale = scale;
-            m_Points[i].SetParent(transform, false);
-        }
+	private void OnDestroy()
+	{
+		DestroyObjects();
+	}
 
-        for (int i = 0; i < m_UV.Length; i++)
-            m_UV[i] = (i + 0.5f) * step - 1.0f;
-    }
+	public void CreateObjects()
+	{
+		m_PositionsBuffer = new ComputeBuffer(c_MaxResolution * c_MaxResolution, 3 * 4);
+	}
 
-    private void Update()
-    {
-        if (m_PreviousResolution != m_Resolution)
-        {
-            for (int i = 0; i < m_Points.Length; i++)
-                Destroy(m_Points[i].gameObject);
+	public void DestroyObjects()
+	{
+		m_PositionsBuffer.Release();
+		m_PositionsBuffer = null;
+	}
 
-            Awake();
-        }
+	private void Update()
+	{
+		UpdateFunctionOnGPU();
+	}
 
-        m_CurrentCounterTime += Time.deltaTime;
-        if (m_IsTransition)
-        {
-            if (m_CurrentCounterTime < m_TransitionTime)
-                m_TransitionProgress = m_CurrentCounterTime / m_TransitionTime;
-            else
-            {
-                m_IsTransition = false;
-                m_CurrentCounterTime -= m_TransitionTime;
-                m_PreviousFunctionName = m_CurrentFunctionName;
-                m_TransitionProgress = 0.0f;
-            }
-        }
-        else if (m_PreviousFunctionName != m_CurrentFunctionName)
-        {
-            m_IsTransition = true;
-            m_CurrentCounterTime = 0.0f;
-        }
-        else if (m_CurrentCounterTime >= m_FunctionHoldTime)
-        {
-            m_CurrentCounterTime -= m_FunctionHoldTime;
-            GetNextFunction();
-        }
+	private void UpdateFunctionOnGPU()
+	{
+		float step = 2.0f / m_Resolution;
+		m_ComputeShader.SetInt(s_Resolution, m_Resolution);
+		m_ComputeShader.SetFloat(s_StepID, step);
+		m_ComputeShader.SetFloat(s_TimeID, Time.time);
 
-        UpdatePointsPosition();
-    }
+		if (m_GraphSelect.IsTransition)
+			m_ComputeShader.SetFloat(s_TransitionTime, m_GraphSelect.TransitionProgress);
 
-    private void UpdatePointsPosition()
-    {
-        float timeNow = Time.time;
+		int kernelIndex = m_GraphSelect.KernelIndex;
+		m_ComputeShader.SetBuffer(kernelIndex, s_PositionID, m_PositionsBuffer);
 
-        if (m_IsTransition || m_CurrentFunctionName != m_PreviousFunctionName)
-        {
-            FunctionLibrary.Function nextFunction = FunctionLibrary.GetFunction(m_CurrentFunctionName), previousFunction = FunctionLibrary.GetFunction(m_PreviousFunctionName);
-            for (int i = 0, u = 0; u < m_UV.Length; u++)
-                for (int v = 0; v < m_UV.Length; i++, v++)
-                    m_Points[i].localPosition = FunctionLibrary.Morph(m_UV[u], m_UV[v], timeNow, nextFunction, previousFunction, m_TransitionProgress);
-        }
-        else
-        {
-            FunctionLibrary.Function currentFunction = FunctionLibrary.GetFunction(m_CurrentFunctionName);
-            for (int i = 0, u = 0; u < m_UV.Length; u++)
-                for (int v = 0; v < m_UV.Length; i++, v++)
-                    m_Points[i].localPosition = currentFunction(m_UV[u], m_UV[v], timeNow);
-        }
-    }
+		int groups = Mathf.CeilToInt(m_Resolution / 8.0f);
+		m_ComputeShader.Dispatch(kernelIndex, groups, groups, 1);
 
-    private void GetNextFunction()
-    {
-        switch (m_NextFunctionMethod)
-        {
-        case NextFunctionMethod.Static:
-            break;
-        case NextFunctionMethod.Cycle:
-            m_CurrentFunctionName = FunctionLibrary.GetNextFunctionName(m_CurrentFunctionName);
-            m_IsTransition = true;
-            break;
-        case NextFunctionMethod.Random:
-            m_CurrentFunctionName = FunctionLibrary.GetRandomFunctionName();
-            m_IsTransition = m_CurrentFunctionName != m_PreviousFunctionName;
-            break;
-        case NextFunctionMethod.RandomNoRepeat:
-            m_CurrentFunctionName = FunctionLibrary.GetRandomFunctionNameOtherThanCurrent(m_CurrentFunctionName);
-            m_IsTransition = true;
-            break;
-        default:
-            break;
-        }
-    }
+		m_Material.SetBuffer(s_PositionID, m_PositionsBuffer);
+		m_Material.SetFloat(s_StepID, step);
+		Bounds bounds = new Bounds(Vector3.zero, Vector3.one * (2.0f + 2.0f / m_Resolution));
+		Graphics.DrawMeshInstancedProcedural(m_Mesh, 0, m_Material, bounds, m_Resolution * m_Resolution);
+	}
 }

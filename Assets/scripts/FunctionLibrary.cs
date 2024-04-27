@@ -25,10 +25,14 @@ public static class FunctionLibrary
         Torus,
     }
 
-    public static Function GetFunction(FunctionName name)
-    {
-        return functions[(int)name];
-    }
+    public static Function GetFunction(FunctionName name) => functions[(int)name];
+
+    public static int GetFunctionCount => functions.Length;
+
+    public static FunctionName GetRandomFunctionName() => (FunctionName)UnityEngine.Random.Range(0, functions.Length);
+
+    public static Vector3 Morph(float u, float v, float t, Function to, Function from, float progress) =>
+        Vector3.LerpUnclamped(from(u, v, t), to(u, v, t), progress);
 
     public static FunctionName GetNextFunctionName(FunctionName name)
     {
@@ -38,20 +42,10 @@ public static class FunctionLibrary
             return 0;
     }
 
-    public static FunctionName GetRandomFunctionName()
-    {
-        return (FunctionName)UnityEngine.Random.Range(0, functions.Length);
-    }
-
     public static FunctionName GetRandomFunctionNameOtherThanCurrent(FunctionName previousName)
     {
         FunctionName nextName = (FunctionName)UnityEngine.Random.Range(1, functions.Length);
         return nextName == previousName ? 0 : nextName;
-    }
-
-    public static Vector3 Morph(float u, float v, float t, Function to, Function from, float progress)
-    {
-        return Vector3.LerpUnclamped(from(u, v, t), to(u, v, t), Mathf.SmoothStep(0.0f, 1.0f, progress));
     }
 
     private static Vector3 Wave(float u, float v, float t)

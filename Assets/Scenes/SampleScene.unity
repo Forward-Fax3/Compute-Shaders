@@ -1346,7 +1346,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1104285511}
+  - component: {fileID: 1104285513}
   - component: {fileID: 1104285510}
+  - component: {fileID: 1104285512}
   m_Layer: 0
   m_Name: Graph
   m_TagString: Untagged
@@ -1361,17 +1363,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1104285509}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 047d850c8237fcc4db5094d4367c923e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_PointPrefab: {fileID: 6565400453019757262, guid: 37b600a399e1aa34bae9609b22d6d019, type: 3}
-  m_CurrentFunctionName: 0
-  m_NextFunctionMethod: 3
-  m_FunctionHoldTime: 5
-  m_TransitionTime: 10
-  m_Resolution: 1001
+  m_Resolution: 201
 --- !u!4 &1104285511
 Transform:
   m_ObjectHideFlags: 0
@@ -1387,6 +1385,39 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1104285512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1104285509}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fe56248b368d674fb0bf231b08d169b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ComputeShader: {fileID: 7200000, guid: ea0678de114682b4cbd1096988c0e577, type: 3}
+  m_Material: {fileID: 2100000, guid: df6d116d5bf2d8a4381714971a593a80, type: 2}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Resolution: 500
+--- !u!114 &1104285513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1104285509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d8ba4fa16f327f44b18136b8e39199c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_CurrentScript: 0
+  m_CurrentFunctionName: 0
+  m_NextFunctionMethod: 0
+  m_FunctionHoldTime: 5
+  m_TransitionTime: 2
 --- !u!1 &1190595068
 GameObject:
   m_ObjectHideFlags: 0
@@ -1398,7 +1429,6 @@ GameObject:
   - component: {fileID: 1190595069}
   - component: {fileID: 1190595071}
   - component: {fileID: 1190595070}
-  - component: {fileID: 1190595072}
   m_Layer: 5
   m_Name: Selector Panel
   m_TagString: Untagged
@@ -1464,18 +1494,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1190595068}
   m_CullTransparentMesh: 1
---- !u!114 &1190595072
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1190595068}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2754f586ea6abcf40b75abd059fdb317, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1240892589
 GameObject:
   m_ObjectHideFlags: 0

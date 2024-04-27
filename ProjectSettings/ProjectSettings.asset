@@ -160,7 +160,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.1
   androidMinAspectRatio: 1
   applicationIdentifier:
-    Android: com.DefaultCompany.MathematicalSurfaces
+    Android: com.DefaultCompany.ComputeShaders
     Standalone: com.DefaultCompany.Compute-Shaders
   buildNumber:
     Bratwurst: 0
